@@ -37,7 +37,7 @@ export class GitHubAPIClient implements GitHubAPI {
 
 				if (!response.ok) {
 					console.error(`HTTP error! status: ${response.status}`, response) // レスポンス全体をログ出力
-					return err(this.handleFetchError(response.status, `Error fetching pull requests`, response)) // response も渡す
+					return err(this.handleFetchError(response.status, `Error fetching pull requests`)) // response も渡す
 				}
 
 				const pulls: PullRequestResponse[] = (await response.json()) as PullRequestResponse[]
