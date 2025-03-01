@@ -1,7 +1,7 @@
 /* @script @tdd */
 import { expect, describe, it, jest } from "@jest/globals" // Using jest globals
-import { convertArrayToCsv } from "../service/csv"
-import { PullRequestModel, PullRequestResponse, GitDiffStat } from "../domain/model" // Import PullRequestModel, PullRequestResponse, GitDiffStat
+import { convertArrayToCsv } from "../src/service/csv"
+import { PullRequestModel, PullRequestResponse, GitDiffStat } from "../src/domain/model" // Import PullRequestModel, PullRequestResponse, GitDiffStat
 
 describe("convertArrayToCsv", () => {
 	it("should return empty string for empty array", () => {

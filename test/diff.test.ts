@@ -1,6 +1,6 @@
 /* @script @tdd */
-import { expect, describe, it, jest } from "@jest/globals" // Using jest globals
-import { getCodeChangesLines } from "../service/diff"
+import { expect, describe, it } from "@jest/globals" // Using jest globals
+import { getCodeChangesLines } from "../src/service/diff"
 
 describe("getCodeChangesLines", () => {
 	it("should return 0 lines for empty diff", () => {
