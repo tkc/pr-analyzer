@@ -8,8 +8,6 @@ export async function getOpenPullRequests(
 	apiClient: GitHubAPI, // Inject GitHubAPI client
 	owner: string,
 	repo: string,
-	startDate: string,
-	endDate: string,
 ): Promise<PullRequestModel[]> {
 	try {
 		// Fetch PRs for a specific repository using GitHubAPIClient
