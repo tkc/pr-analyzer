@@ -21,50 +21,54 @@ export class GitHubAPIClient implements GitHubAPI {
 	 * @returns {Promise<Result<PullRequestResponse[], GitHubAPIError>>} Promise resolving to Result containing an array of PullRequestResponse on success, or GitHubAPIError on failure.
 	 */
 	async getPullRequests(owner: string, repo: string): Promise<Result<PullRequestResponse[], GitHubAPIError>> {
-		// Corrected return type to Result
-		// Return Result
 		let url: string | null = `https://api.github.com/repos/${owner}/${repo}/pulls?state=all&per_page=100`
 		const allPulls: PullRequestResponse[] = []
 
 		try {
 			while (url) {
+				console.log(`Fetching URL: ${url}`) // デバッグログ：リクエストURL
 				const response: Response = await fetch(url, {
 					headers: {
-						// Headers as plain object literal with explicit casting to HeadersInit
-						Authorization: token ? `token ${token}` : undefined,
-						Accept: "application/json",
-					} as HeadersInit, // Explicitly cast to HeadersInit
+						Authorization: token ? `Bearer ${token}` : undefined, // Bearerトークン形式に変更
+						Accept: "application/vnd.github+json", // 正しいAcceptヘッダー
+						"X-GitHub-Api-Version": "2022-11-28", // APIバージョン指定
+					} as HeadersInit,
 				})
 
 				if (!response.ok) {
-					console.error(response)
-					return err(this.handleFetchError(response.status, "Error fetching pull requests")) // Use err
+					console.error(`HTTP error! status: ${response.status}`, response) // レスポンス全体をログ出力
+					return err(this.handleFetchError(response.status, `Error fetching pull requests`, response)) // response も渡す
 				}
 
 				const pulls: PullRequestResponse[] = (await response.json()) as PullRequestResponse[]
-				allPulls.push(...pulls) // 取得したプルリクエストをリストに追加
+				allPulls.push(...pulls)
+				console.log(`取得したプルリクエスト数 (ページ): ${pulls.length}, 累積: ${allPulls.length}`) // デバッグログ：ページごとの取得数と累積
 
 				const linkHeader: string | null = response.headers.get("Link")
+				console.log(`Link Header: ${linkHeader}`) // デバッグログ：Linkヘッダーの内容
+
 				if (linkHeader) {
 					const links: string[] = linkHeader.split(",")
 					let nextUrl: string | null = null
-					for (const link of links as string[]) {
-						// Added type annotation here
+					for (const link of links) {
 						if (link.includes('rel="next"')) {
-							const nextUrlStart = link.indexOf("<") + 1
-							const nextUrlEnd = link.indexOf(">", nextUrlStart)
-							nextUrl = link.substring(nextUrlStart, nextUrlEnd)
-							break
+							const nextUrlMatch = link.match(/<([^>]+)>/) // 正規表現でURL抽出
+							if (nextUrlMatch && nextUrlMatch[1]) {
+								nextUrl = nextUrlMatch[1]
+								console.log(`Next URL: ${nextUrl}`) // デバッグログ：次のURL
+								break
+							}
 						}
 					}
-					url = nextUrl // 次のページのURLを設定 (nextUrl が null の場合はループ終了)
+					url = nextUrl
 				} else {
-					url = null // Link ヘッダーがない場合は次のページはないのでループ終了
+					console.log("No Link header found, end of pagination.") // デバッグログ：ページネーション終了
+					url = null
 				}
 			}
-			return ok(allPulls) // Return ok with PullRequestResponse[]
+			return ok(allPulls)
 		} catch (error: any) {
-			return err(this.handleError(error, "Error fetching pull requests")) // Use err
+			return err(this.handleError(error, "Error fetching pull requests"))
 		}
 	}
 
