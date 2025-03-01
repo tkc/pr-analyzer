@@ -14,7 +14,6 @@ TypeScriptでのAdapterパターンは、外部依存を抽象化し、テスト
 内部状態を持たない単純な操作の場合は、関数ベースの実装を選択します：
 
 ```ts
-// fs.ts
 
 import { Result, ok, err } from "npm:neverthrow";
 

@@ -58,7 +58,7 @@
 
 ## 依存関係
 
-- `axios`: HTTP リクエストライブラリ
+- `fetch`: HTTP リクエストライブラリ
 - `js-yaml`: YAML ファイル読み込みライブラリ
 - `neverthrow`: Result型ライブラリ
 
@@ -69,20 +69,20 @@
 ## 実行方法
 
 1.  **コンパイル**:
-    ```bash
-    # yarn compile (コンパイルは不要)
-    ```
-2.  **実行**:
-    ```bash
-    GITHUB_TOKEN=<your_github_token> npx tsx src/index.ts
-    ```
-    または、直接実行する場合:
-    ```bash
-    npx tsx src/index.ts
-    ```
+```bash
+$ yarn compile 
+```
+
+2.  **テスト**:
+```bash
+npx jest
+```
+
+3.  **実行**:
+```bash
+$ npx tsx src/index.ts
+  ```
 
 ## 備考
-
-- リポジトリのオーナーとリポジトリ名はコードにハードコードされています。別のリポジトリで実行する場合は、コードを修正する必要があります。(repos.ymlから取得するように修正済み)
 - 差分の解析は簡易的な実装です。diff 形式の複雑なケースには対応できない場合があります。
 - 環境変数 `GITHUB_TOKEN` を設定せずに実行する場合、GitHub API のレート制限に注意してください。

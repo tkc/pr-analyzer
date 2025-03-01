@@ -2,9 +2,6 @@ import * as fs from "fs" // Import fs module
 import * as yaml from "js-yaml"
 import { getOpenPullRequests } from "./service/pr"
 import { convertArrayToCsv } from "./service/csv"
-import { GitHubAPIClient } from "./infrastructure/github_api/github_api_client" // Corrected import path
-
-const gitHubAPIClient: GitHubAPIClient = new GitHubAPIClient() // Create instance of GitHubAPIClient - Moved here
 
 async function main() {
 	console.log("Starting the GitHub PRs fetcher...")
@@ -18,7 +15,7 @@ async function main() {
 		const OWNER = urlParts[3] // Moved inside loop
 		const REPO = urlParts[4] // Moved inside loop
 
-		const pullRequests = await getOpenPullRequests(gitHubAPIClient, OWNER, REPO) // Use getOpenPullRequests service function
+		const pullRequests = await getOpenPullRequests(OWNER, REPO) // Use getOpenPullRequests service function
 
 		if (!pullRequests || pullRequests.length === 0) {
 			console.log(`No pull requests found for ${OWNER}/${REPO}.`)
