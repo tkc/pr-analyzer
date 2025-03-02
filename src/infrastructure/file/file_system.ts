@@ -1,4 +1,4 @@
-import { PullRequestModel } from "../domain/model"
+import { PullRequestModel } from "../../domain/model"
 import * as fs from "fs/promises"
 import path from "path"
 

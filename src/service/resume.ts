@@ -1,5 +1,5 @@
 import { PullRequestModel } from "../domain/model"
-import { FileSystem } from "../infrastructure/file_system"
+import { FileSystem } from "../infrastructure/file/file_system"
 
 export class ResumeService {
 	private fileSystem: FileSystem

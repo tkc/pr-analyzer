@@ -3,7 +3,7 @@ import * as yaml from "js-yaml"
 import { getOpenPullRequests, getPullRequestDiff } from "./service/pr"
 import { getCodeChangesLines } from "./service/diff"
 import { ResumeService } from "./service/resume"
-import { LocalFileSystem } from "./infrastructure/file_system"
+import { LocalFileSystem } from "./infrastructure/file/file_system"
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 

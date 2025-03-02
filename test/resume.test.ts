@@ -1,5 +1,5 @@
 import { ResumeService } from "../src/service/resume"
-import { FileSystem } from "../src/infrastructure/file_system"
+import { FileSystem } from "../src/infrastructure/file/file_system"
 import { PullRequestModel } from "../src/domain/model"
 
 const testUser = {
