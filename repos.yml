@@ -1,3 +1,4 @@
 repositories:
     - https://github.com/openai/openai-cookbook
     - https://github.com/All-Hands-AI/agent-analysis
+    - https://github.com/anthropics/claude-code

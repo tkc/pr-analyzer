@@ -32,7 +32,7 @@ async function main() {
 		}
 
 		const fileSystem = new LocalFileSystem()
-		const resumeService = new ResumeService(fileSystem, fileSystem.generateProgressFileName)
+		const resumeService = new ResumeService(fileSystem)
 
 		// Create or update progress with the new PRs
 		let progress = await resumeService.initProgress(

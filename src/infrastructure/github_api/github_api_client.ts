@@ -1,4 +1,4 @@
-// src/github_api/github_api_client.ts
+// src/infrastructure/github_api/github_api_client.ts
 import { GitHubAPI } from "./github_api"
 import { Result, ok, err } from "neverthrow"
 import { GitHubAPIError } from "./github_api_error"
@@ -6,13 +6,54 @@ import { PullRequestResponse } from "../../domain/model"
 import * as dotenv from "dotenv"
 import fetch, { Response, HeadersInit } from "node-fetch"
 
+// Load environment variables
 dotenv.config()
-const token = process.env.GITHUB_REPO_URL
+const token = process.env.GITHUB_TOKEN
+
+// API Constants
+const GITHUB_API_BASE = "https://api.github.com"
+const GITHUB_API_VERSION = "2022-11-28"
+const DEFAULT_PAGE_SIZE = 100
 
 /**
  * Implementation of GitHubAPI interface using fetch API.
  * Handles communication with GitHub REST API.
  */
+
+/**
+ * Extracts the next URL from a GitHub API Link header
+ * @param linkHeader The Link header from GitHub API response
+ * @returns The next URL or null if there is no next page
+ */
+function extractNextUrl(linkHeader: string | null): string | null {
+	if (!linkHeader) {
+		return null
+	}
+	
+	const links = linkHeader.split(",")
+	for (const link of links) {
+		if (link.includes('rel="next"')) {
+			const nextUrlMatch = link.match(/<([^>]+)>/)
+			if (nextUrlMatch && nextUrlMatch[1]) {
+				return nextUrlMatch[1]
+			}
+		}
+	}
+	return null
+}
+
+/**
+ * Creates standard headers for GitHub API requests
+ * @param acceptType The Accept header value
+ * @returns Headers object for fetch
+ */
+function createGitHubHeaders(acceptType = "application/vnd.github+json"): HeadersInit {
+	return {
+		Authorization: token ? `Bearer ${token}` : undefined,
+		Accept: acceptType,
+		"X-GitHub-Api-Version": GITHUB_API_VERSION,
+	} as HeadersInit
+}
 
 /**
  * Fetches all pull requests for a given repository.
@@ -21,54 +62,28 @@ const token = process.env.GITHUB_REPO_URL
  * @returns Promise resolving to Result containing an array of PullRequestResponse on success, or GitHubAPIError on failure.
  */
 export async function getPullRequests(owner: string, repo: string): Promise<Result<PullRequestResponse[], GitHubAPIError>> {
-	let url: string | null = `https://api.github.com/repos/${owner}/${repo}/pulls?state=all&per_page=100`
+	let url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/pulls?state=all&per_page=${DEFAULT_PAGE_SIZE}`
 	const allPulls: PullRequestResponse[] = []
 
 	try {
 		while (url) {
-			console.log(`Fetching URL: ${url}`)
 			const response: Response = await fetch(url, {
-				headers: {
-					Authorization: token ? `Bearer ${token}` : undefined,
-					Accept: "application/vnd.github+json",
-					"X-GitHub-Api-Version": "2022-11-28",
-				} as HeadersInit,
+				headers: createGitHubHeaders()
 			})
 
 			if (!response.ok) {
-				console.error(`HTTP error! status: ${response.status}`, response)
-				return err(handleFetchError(response.status, `Error fetching pull requests`)) // response also passed
+				return err(handleFetchError(response.status, `Error fetching pull requests for ${owner}/${repo}`))
 			}
 
 			const pulls: PullRequestResponse[] = (await response.json()) as PullRequestResponse[]
 			allPulls.push(...pulls)
-			console.log(`Number of pull requests fetched (page): ${pulls.length}, Cumulative: ${allPulls.length}`)
-
-			const linkHeader: string | null = response.headers.get("Link")
-			console.log(`Link Header: ${linkHeader}`)
-
-			if (linkHeader) {
-				const links: string[] = linkHeader.split(",")
-				let nextUrl: string | null = null
-				for (const link of links) {
-					if (link.includes('rel="next"')) {
-						const nextUrlMatch = link.match(/<([^>]+)>/)
-						if (nextUrlMatch && nextUrlMatch[1]) {
-							nextUrl = nextUrlMatch[1]
-							console.log(`Next URL: ${nextUrl}`)
-							break
-						}
-					}
-				}
-				url = nextUrl
-			} else {
-				console.log("No Link header found, end of pagination.")
-				url = null
-			}
+			
+			// Get next page URL from Link header
+			url = extractNextUrl(response.headers.get("Link")) || ""
 		}
 		return ok(allPulls)
-	} catch (error: any) {
-		return err(handleError(error, "Error fetching pull requests"))
+	} catch (error) {
+		return err(handleError(error, `Error fetching pull requests for ${owner}/${repo}`))
 	}
 }
 
@@ -85,19 +100,18 @@ export async function getPullRequestDiff(
 	pullRequestNumber: number,
 ): Promise<Result<string, GitHubAPIError>> {
 	try {
-		const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls/${pullRequestNumber}`, {
-			headers: {
-				Accept: "application/vnd.github.v3.diff",
-				Authorization: token ? `token ${token}` : undefined,
-			} as HeadersInit,
+		const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/pulls/${pullRequestNumber}`
+		const response = await fetch(url, {
+			headers: createGitHubHeaders("application/vnd.github.v3.diff")
 		})
+		
 		if (!response.ok) {
 			return err(handleFetchError(response.status, `Error fetching diff for PR #${pullRequestNumber}`))
 		}
+		
 		const data = await response.text()
 		return ok(data)
-	} catch (error: any) {
-		console.error(error)
+	} catch (error) {
 		return err(handleError(error, `Error fetching diff for PR #${pullRequestNumber}`))
 	}
 }
@@ -127,7 +141,7 @@ function handleFetchError(status: number, message: string): GitHubAPIError {
  * @param message Error message.
  * @returns GitHubAPIError with the error message.
  */
-function handleError(error: any, message: string): GitHubAPIError {
+function handleError(error: unknown, message: string): GitHubAPIError {
 	if (error instanceof Error) {
 		return new GitHubAPIError("unknown", `${message}: ${error.message}`)
 	} else {
