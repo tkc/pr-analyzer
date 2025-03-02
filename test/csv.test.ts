@@ -49,11 +49,22 @@ describe("convertArrayToCsv", () => {
 			},
 		] as PullRequestModel[]
 		const csvOutput = convertArrayToCsv(data)
-		expect(csvOutput).toContain(
-			"id,number,title,created_at,merged_at,authorName,avatar_url,url,diff.addedLines,diff.deletedLines,diff.totalLines",
-		)
 		console.log("Actual CSV Output (single PR):", csvOutput)
-		// Check header
-		expect(csvOutput).toContain("123,456,Test PR,2025-03-01T12:00:00Z,,testUser,testUrl,testHtmlUrl,10,5,15") // Check content
+		// ヘッダーとデータ行を別々に検証する
+		const [header, dataRow] = csvOutput.split("\n")
+		expect(header).toBe("id,number,title,created_at,merged_at,authorName,avatar_url,url,addedLines,deletedLines,totalLines")
+
+		const values = dataRow.split(",")
+		expect(values[0]).toBe("123") // id
+		expect(values[1]).toBe("456") // number
+		expect(values[2]).toBe('"Test PR"') // title
+		expect(values[3]).toBe("2025-03-01T12:00:00Z") // created_at
+		expect(values[4]).toBe("") // merged_at
+		expect(values[5]).toBe(`"testUser"`) // authorName
+		expect(values[6]).toBe("testUrl") // avatar_url
+		expect(values[7]).toBe("testHtmlUrl") // url
+		expect(values[8]).toBe("10") // diff.addedLines
+		expect(values[9]).toBe("5") // diff.deletedLines
+		expect(values[10]).toBe("15") // diff.totalLines
 	})
 })

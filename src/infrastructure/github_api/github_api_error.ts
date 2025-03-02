@@ -1,12 +1,11 @@
 // src/github_api/github_api_error.ts
 
-/**
- * Type definition for GitHub API errors.
- * Discriminated union type to represent various API error scenarios.
- */
-export type GitHubAPIError =
-	| { type: "network"; message: string }
-	| { type: "notFound"; message: string }
-	| { type: "rateLimitExceeded"; message: string }
-	| { type: "diffTooLarge"; message: string }
-	| { type: "unknown"; message: string }
+export class GitHubAPIError extends Error {
+	type: "network" | "notFound" | "rateLimitExceeded" | "diffTooLarge" | "unknown"
+
+	constructor(type: "network" | "notFound" | "rateLimitExceeded" | "diffTooLarge" | "unknown", message: string) {
+		super(message)
+		this.type = type
+		this.name = "GitHubAPIError" // Set the name property to identify the error type
+	}
+}

@@ -111,13 +111,13 @@ export async function getPullRequestDiff(
 function handleFetchError(status: number, message: string): GitHubAPIError {
 	switch (status) {
 		case 403:
-			return { type: "rateLimitExceeded", message: "GitHub API rate limit exceeded" }
+			return new GitHubAPIError("rateLimitExceeded", "GitHub API rate limit exceeded")
 		case 404:
-			return { type: "notFound", message: "Resource not found" }
+			return new GitHubAPIError("notFound", "Resource not found")
 		case 406:
-			return { type: "diffTooLarge", message: "Pull request diff is too large" }
+			return new GitHubAPIError("diffTooLarge", "Pull request diff is too large")
 		default:
-			return { type: "network", message: `${message}: HTTP status ${status}` }
+			return new GitHubAPIError("network", `${message}: HTTP status ${status}`)
 	}
 }
 
@@ -129,8 +129,8 @@ function handleFetchError(status: number, message: string): GitHubAPIError {
  */
 function handleError(error: any, message: string): GitHubAPIError {
 	if (error instanceof Error) {
-		return { type: "unknown", message: `${message}: ${error.message}` }
+		return new GitHubAPIError("unknown", `${message}: ${error.message}`)
 	} else {
-		return { type: "unknown", message: `${message}: ${String(error)}` }
+		return new GitHubAPIError("unknown", `${message}: ${String(error)}`)
 	}
 }

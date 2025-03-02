@@ -8,7 +8,10 @@ export type PullRequestModel = Pick<
 	PullRequestResponse,
 	"id" | "number" | "title" | "created_at" | "merged_at" | "user" | "html_url"
 > & {
-	diff: GitDiffStat
+	diff: GitDiffStat | null
+	processed: boolean
+	owner: string
+	repo: string
 }
 
 export interface PullRequestResponse {

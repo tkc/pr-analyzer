@@ -14,24 +14,26 @@ export function convertArrayToCsv(data: PullRequestModel[]): string {
 		"authorName",
 		"avatar_url",
 		"url",
-		"diff.addedLines",
-		"diff.deletedLines",
-		"diff.totalLines",
+		"addedLines",
+		"deletedLines",
+		"totalLines",
 	].join(",")
 
 	const rows = data.map((item) => {
+		// title をエスケープする処理を追加
+		const escapedTitle = item.title.replace(/"/g, '""') // 二重引用符を二重にする
+		const quotedTitle = `"${escapedTitle}"` // 二重引用符で囲む
+		const diff = item.diff
 		const values = [
 			item.id,
 			item.number,
-			item.title,
+			quotedTitle,
 			item.created_at,
 			item.merged_at,
-			item.user.login,
+			`"${item.user.login}"`,
 			item.user.avatar_url,
 			item.html_url,
-			item.diff.addedLines,
-			item.diff.deletedLines,
-			item.diff.totalLines,
+			...(diff ? [diff.addedLines, diff.deletedLines, diff.totalLines] : ["", "", ""]),
 		]
 		return values.join(",")
 	})
